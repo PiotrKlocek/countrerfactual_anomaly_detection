@@ -2,15 +2,14 @@ from pathlib import Path
 
 from anomalib.data import PredictDataset
 from anomalib.engine import Engine
-from anomalib.models import Patchcore
+from anomalib.models import Padim
 
 
 def main():
-    ckpt_path = Path(
-        "results/Patchcore/MVTecAD/bottle/v4/weights/lightning/model.ckpt"
-    )
+    project_root = Path(__file__).resolve().parents[2]
 
-    image_path = Path("test/broken_large/000.png")
+    ckpt_path = project_root / "models" / "padim" / "model.ckpt"
+    image_path = project_root / "data" / "mvtec" / "bottle" / "test" / "good" / "000.png"
 
     if not ckpt_path.exists():
         raise FileNotFoundError(f"Nie znaleziono checkpointu: {ckpt_path}")
@@ -23,7 +22,7 @@ def main():
         image_size=(256, 256),
     )
 
-    model = Patchcore()
+    model = Padim()
     engine = Engine(accelerator="auto", devices=1)
 
     predictions = engine.predict(
@@ -32,16 +31,12 @@ def main():
         ckpt_path=str(ckpt_path),
     )
 
-    print(f"Liczba predykcji: {len(predictions)}")
-    print(f"Typ obiektu: {type(predictions[0])}")
-    print(predictions[0])
-
     pred = predictions[0]
 
-    for key in ["pred_score", "pred_label", "anomaly_map", "image_path"]:
-        value = getattr(pred, key, None)
-        if value is not None:
-            print(f"{key}: {value}")
+    print(f"image_path: {pred.image_path}")
+    print(f"pred_score: {pred.pred_score}")
+    print(f"pred_label: {pred.pred_label}")
+    print(f"anomaly_map shape: {pred.anomaly_map.shape}")
 
 
 if __name__ == "__main__":
